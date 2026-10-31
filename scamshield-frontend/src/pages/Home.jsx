@@ -1,318 +1,49 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import {
-  FiFileText, FiUpload, FiImage, FiArrowRight, FiTrendingUp,
-  FiShield, FiAlertTriangle, FiCheckCircle, FiActivity,
-} from 'react-icons/fi'
-import { SiGmail } from 'react-icons/si'
-import GlassCard from '../components/ui/GlassCard'
-import SpotlightCard from '../components/ui/SpotlightCard'
-import AIScanAnimation from '../components/ui/AIScanAnimation'
+import { Shield, ScanLine, ArrowUpRight, ArrowRight, Activity, TriangleAlert, CheckCheck, FileText, FileUp, Image, Mail, Crosshair, Fingerprint, ChevronRight, Radar, SlidersHorizontal } from 'lucide-react'
 import { dummyHistory } from '../utils/dummyData'
-import { useAuth } from '../contexts/GoogleAuthContext'
 
-const METHODS = [
-  {
-    icon: FiFileText,
-    title: 'Paste text',
-    desc: 'Copy the listing text and drop it in. Fastest option for postings found online.',
-    to: '/app/text',
-    color: '#00E5FF',
-    gradient: 'from-cyan/20 to-cyan/5',
-  },
-  {
-    icon: FiUpload,
-    title: 'Upload PDF',
-    desc: 'Got an offer letter or attached listing? Upload the file — we extract and analyze.',
-    to: '/app/pdf',
-    color: '#6C63FF',
-    gradient: 'from-violet/20 to-violet/5',
-  },
-  {
-    icon: FiImage,
-    title: 'Screenshot',
-    desc: 'Screenshotted a DM or a social post? We can read that too with OCR.',
-    to: '/app/image',
-    color: '#10B981',
-    gradient: 'from-safe/20 to-safe/5',
-  },
-  {
-    icon: SiGmail,
-    title: 'Scan Gmail',
-    desc: 'Connect Google and pick suspicious emails straight from your inbox.',
-    to: '/app/gmail',
-    color: '#EA4335',
-    gradient: 'from-[#EA4335]/15 to-[#FBBC05]/5',
-    badge: 'New',
-  },
+const methods = [
+  { icon: FileText, name: 'Text analysis', description: 'Inspect a job post or recruiter message.', to: '/app/text', tag: 'PASTE TEXT' },
+  { icon: FileUp, name: 'Document scan', description: 'Examine offer letters and PDF attachments.', to: '/app/pdf', tag: 'UPLOAD PDF' },
+  { icon: Image, name: 'Image scan', description: 'Uncover red flags hidden in screenshots.', to: '/app/image', tag: 'UPLOAD IMAGE' },
+  { icon: Mail, name: 'Email security', description: 'Review suspicious offers in your Gmail.', to: '/app/gmail', tag: 'CONNECT GMAIL' },
 ]
-
-const QUICK_STATS = [
-  { label: 'Scans today',     value: '3',    icon: FiActivity,       color: '#00E5FF' },
-  { label: 'Scams caught',    value: '2',    icon: FiAlertTriangle,  color: '#F43F5E' },
-  { label: 'Genuine offers',  value: '1',    icon: FiCheckCircle,    color: '#10B981' },
-  { label: 'Accuracy rate',   value: '96%',  icon: FiShield,         color: '#6C63FF' },
-]
-
-export default function Home() {
-  const recent = dummyHistory.slice(0, 3)
-  const { user, isLoggedIn } = useAuth()
-
-  const firstName = isLoggedIn && user?.given_name
-    ? user.given_name
-    : isLoggedIn && user?.name
-    ? user.name.split(' ')[0]
-    : null
-
-  return (
-    <div className="relative">
-      {/* Subtle aurora glow behind content */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan/[0.04] rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-violet/[0.05] rounded-full blur-[100px]" />
-      </div>
-
-      <div className="relative z-10">
-        {/* ── WELCOME HEADER ── */}
-        <div className="grid lg:grid-cols-[1fr_380px] gap-6 mb-8 items-start">
-          <div>
-            {/* User greeting */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-4 mb-6"
-            >
-              {isLoggedIn && (
-                <div className="shrink-0">
-                  {user?.picture ? (
-                    <img
-                      src={user.picture}
-                      alt={user.name}
-                      className="w-12 h-12 rounded-full border-2 border-cyan/30 shadow-[0_0_20px_rgba(0,229,255,0.3)]"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan to-violet flex items-center justify-center text-base font-bold text-base-950">
-                      {user?.name?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                </div>
-              )}
-              <div>
-                <h1 className="text-2xl md:text-3xl font-display font-bold">
-                  {firstName ? `Welcome back, ${firstName} 👋` : 'Welcome back 👋'}
-                </h1>
-                <p className="text-slate-400 mt-1 text-sm">
-                  {isLoggedIn
-                    ? `Signed in as ${user?.email}`
-                    : "Pick how you'd like to scan a job posting."}
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Quick stats row */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-2"
-            >
-              {QUICK_STATS.map((s, i) => (
-                <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.15 + i * 0.06 }}
-                >
-                  <SpotlightCard
-                    spotlightColor={`${s.color}10`}
-                    className="glass rounded-xl p-4 border border-white/[0.06] hover:border-white/15 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <s.icon style={{ color: s.color }} size={13} />
-                      <span className="text-xs text-slate-500">{s.label}</span>
-                    </div>
-                    <p className="font-display font-bold text-xl" style={{ color: s.color }}>
-                      {s.value}
-                    </p>
-                  </SpotlightCard>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* AI Scan Animation panel */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-          >
-            <div
-              className="relative overflow-hidden rounded-2xl p-[1px]"
-              style={{
-                background: 'linear-gradient(135deg, rgba(34,211,238,0.25) 0%, rgba(124,58,237,0.15) 50%, rgba(34,211,238,0.08) 100%)',
-              }}
-            >
-              <div
-                className="relative rounded-2xl overflow-hidden"
-                style={{ background: 'linear-gradient(145deg, #0a1220 0%, #060c14 100%)' }}
-              >
-                {/* Radial center glow */}
-                <div className="absolute inset-0 pointer-events-none"
-                  style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(34,211,238,0.06) 0%, transparent 70%)' }}
-                />
-
-                {/* Card header */}
-                <div className="flex items-center justify-between px-4 pt-4 pb-1">
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 rounded-full bg-rose-500/70" />
-                      <span className="w-2 h-2 rounded-full bg-amber-400/70" />
-                      <span className="w-2 h-2 rounded-full bg-emerald-400/70" />
-                    </div>
-                    <span className="text-[10px] font-mono text-slate-500">scamshield_ai.py</span>
-                  </div>
-                  {/* LIVE badge */}
-                  <span className="flex items-center gap-1.5 text-[9px] font-bold font-mono tracking-widest px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(34,211,238,0.1)', color: '#22D3EE', border: '1px solid rgba(34,211,238,0.3)' }}>
-                    <motion.span
-                      className="w-1.5 h-1.5 rounded-full bg-cyan-400"
-                      animate={{ opacity: [1, 0.2, 1] }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                    />
-                    LIVE
-                  </span>
-                </div>
-
-                {/* Animation */}
-                <AIScanAnimation className="h-[220px] px-2 pb-3" />
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* ── SCAN METHOD CARDS ── */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }}
-          className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-4"
-        >
-          Choose scan method
-        </motion.p>
-
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
-          {METHODS.map((m, i) => (
-            <motion.div
-              key={m.title}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.3 + i * 0.08 }}
-            >
-              <Link to={m.to}>
-                <SpotlightCard
-                  spotlightColor={`${m.color}10`}
-                  className="h-full rounded-2xl glass border border-white/[0.08] hover:border-white/20 transition-all duration-300 group relative overflow-hidden"
-                >
-                  {/* Hover gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-                  <div className="relative p-6">
-                    {m.badge && (
-                      <span
-                        className="absolute top-4 right-4 text-[9px] font-bold px-2 py-0.5 rounded-full border"
-                        style={{
-                          background: `${m.color}15`,
-                          color: m.color,
-                          borderColor: `${m.color}40`,
-                        }}
-                      >
-                        {m.badge}
-                      </span>
-                    )}
-
-                    <motion.div
-                      className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform"
-                      style={{
-                        background: `${m.color}12`,
-                        border: `1px solid ${m.color}30`,
-                        boxShadow: `0 0 20px ${m.color}15`,
-                      }}
-                    >
-                      <m.icon style={{ color: m.color }} size={20} />
-                    </motion.div>
-
-                    <h3 className="font-display font-bold text-base mb-1.5">{m.title}</h3>
-                    <p className="text-xs text-slate-400 leading-relaxed mb-5">{m.desc}</p>
-
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold"
-                      style={{ color: m.color }}
-                    >
-                      Start scan
-                      <FiArrowRight className="group-hover:translate-x-1 transition-transform" size={13} />
-                    </span>
-                  </div>
-                </SpotlightCard>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* ── RECENT ACTIVITY ── */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-display font-bold flex items-center gap-2">
-            <FiTrendingUp className="text-violet" size={17} />
-            Recent activity
-          </h2>
-          <Link to="/history" className="text-xs text-cyan hover:text-cyan/80 font-mono transition-colors">
-            View all →
-          </Link>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-4">
-          {recent.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 + i * 0.07 }}
-            >
-              <SpotlightCard
-                spotlightColor={item.verdict === 'scam' ? 'rgba(244,63,94,0.06)' : 'rgba(16,185,129,0.06)'}
-                className="rounded-xl glass border border-white/[0.06] hover:border-white/15 transition-colors"
-              >
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                        item.verdict === 'scam'
-                          ? 'bg-danger/10 text-danger border border-danger/20'
-                          : 'bg-safe/10 text-safe border border-safe/20'
-                      }`}
-                    >
-                      {item.verdict === 'scam' ? '⚠ Scam' : '✓ Genuine'}
-                    </span>
-                    <span className="text-xs text-slate-600 font-mono">{item.date}</span>
-                  </div>
-                  <p className="font-semibold text-sm truncate">{item.title}</p>
-                  <p className="text-xs text-slate-500 mt-1 truncate">{item.company}</p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <span className="text-xs text-slate-600 font-mono capitalize">{item.method}</span>
-                    <div
-                      className="h-1 w-16 rounded-full overflow-hidden bg-white/5"
-                    >
-                      <div
-                        className={`h-full rounded-full ${item.verdict === 'scam' ? 'bg-danger' : 'bg-safe'}`}
-                        style={{ width: `${item.confidence * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
+function PanelTitle({ icon: Icon, title, children }) { return <div className="panel-title"><h2><Icon size={16}/>{title}</h2>{children}</div> }
+function Trend({ items }) {
+  const dates = [...new Set(items.map(i => i.date))].sort()
+  const points = verdict => dates.map((date, i) => `${40 + i * (490 / Math.max(dates.length - 1, 1))},${150 - items.filter(item => item.date <= date && item.verdict === verdict).length * 35}`).join(' ')
+  return <svg className="trend-chart" viewBox="0 0 570 192" role="img" aria-label="Cumulative sample scans: flagged and genuine offers by date">
+    <defs><linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#f7b955" stopOpacity=".16"/><stop offset="1" stopColor="#f7b955" stopOpacity="0"/></linearGradient></defs>
+    {[0,1,2,3].map(n => <g key={n}><line x1="40" y1={150-n*35} x2="530" y2={150-n*35} stroke="#ffffff0d" strokeDasharray="3 5"/><text x="13" y={154-n*35}>{n}</text></g>)}
+    <polygon points={`40,150 ${points('scam')} 530,150`} fill="url(#chartFill)"/>
+    <polyline className="chart-line" points={points('scam')} fill="none" stroke="#f4bc66" strokeWidth="2.4" strokeLinejoin="round"/>
+    <polyline className="chart-line violet-line" points={points('genuine')} fill="none" stroke="#a078ed" strokeWidth="2.4" strokeLinejoin="round"/>
+    {dates.map((d,i)=><text key={d} x={40+i*(490/Math.max(dates.length-1,1))} y="181" textAnchor="middle">{d.slice(5).replace('-', '/')}</text>)}
+  </svg>
 }
+function RadarVisual() { return <div className="radar-visual"><svg viewBox="0 0 240 240" aria-hidden="true"><defs><radialGradient id="radarGlow"><stop stopColor="#f8bc58" stopOpacity=".12"/><stop offset="1" stopColor="#f8bc58" stopOpacity="0"/></radialGradient><linearGradient id="radarSweep"><stop stopColor="#f8bc58" stopOpacity="0"/><stop offset="1" stopColor="#f8bc58" stopOpacity=".2"/></linearGradient></defs><circle cx="120" cy="120" r="112" fill="url(#radarGlow)"/>{[39,68,98].map(r=><circle key={r} cx="120" cy="120" r={r} fill="none" stroke="#d8b46a" strokeOpacity=".16"/>)}<path d="M120 12V228M12 120H228M44 44L196 196M44 196L196 44" stroke="#d8b46a" strokeOpacity=".1"/><g className="radar-sweep"><path d="M120 120L120 22A98 98 0 0 1 218 120Z" fill="url(#radarSweep)"/><path d="M120 120H218" stroke="#f8bc58" strokeOpacity=".6"/></g><circle className="radar-blip" cx="173" cy="66" r="4" fill="#f8bc58"/><circle cx="55" cy="145" r="3" fill="#a078ed"/><circle cx="155" cy="186" r="3" fill="#a078ed"/><path d="M120 91L141 100V119C141 135 120 146 120 146S99 135 99 119V100Z" fill="#17140e" stroke="#f8bc58" strokeWidth="1.7"/><path d="M111 118L118 125L130 111" fill="none" stroke="#f8bc58" strokeWidth="2"/></svg></div> }
+export default function Home() {
+  const [range, setRange] = useState('all')
+  const [filter, setFilter] = useState('all')
+  const items = range === 'recent' ? dummyHistory.slice(0,3) : dummyHistory
+  const flagged = items.filter(i=>i.verdict==='scam').length
+  const genuine = items.length-flagged
+  const confidence = Math.round(items.reduce((sum,i)=>sum+i.confidence,0)/items.length*100)
+  const rows = items.filter(i=>filter==='all'||i.verdict===filter)
+  return <div className="console-dashboard">
+    <div className="overview-heading"><div><div className="eyebrow"><span/> YOUR PERSONAL DEFENSE LAYER</div><h1>Security overview<span>.</span></h1><p>A clearer view of risk. A more confident next move.</p></div><Link to="/app/text" className="gold-button"><ScanLine size={17}/> New scan <ArrowUpRight size={16}/></Link></div>
+    <div className="dashboard-toolbar"><div className="section-label"><Activity size={14}/> THREAT INTELLIGENCE <span className="demo-label">DEMO DATA</span></div><label className="range-picker">Sample period <select value={range} onChange={e=>setRange(e.target.value)}><option value="all">All sample scans</option><option value="recent">Latest 3 scans</option></select></label></div>
+    <div className="metrics-grid">{[
+      [ScanLine,'Total scans',items.length,'Across all scan methods','gold'],[TriangleAlert,'Flagged offers',flagged,'Potential threats identified','gold'],[CheckCheck,'Genuine offers',genuine,'Lower-risk sample results','purple'],[Fingerprint,'Avg. confidence',`${confidence}%`,'Model confidence · sample data','purple'],
+    ].map(([Icon,label,value,detail,tone],i)=><section key={label} className={`metric-card ${tone}`} style={{'--order':i}}><div className="metric-label"><Icon size={17}/>{label}<span>0{i+1}</span></div><div className="metric-value">{typeof value==='number'?String(value).padStart(2,'0'):value}<svg viewBox="0 0 90 30" aria-hidden="true"><path d={i%2 ? 'M0 25L12 19L22 22L35 10L45 14L58 5L70 9L90 2' : 'M0 24L12 24L24 16L37 21L50 11L62 14L76 5L90 5'} fill="none" stroke="currentColor" strokeWidth="1.6"/></svg></div><p>{detail}</p><div className="metric-rule"/></section>)}</div>
+    <div className="intelligence-grid"><section className="console-panel trend-panel"><PanelTitle icon={Activity} title="Detection activity"><span className="tiny-label">CUMULATIVE SCANS</span></PanelTitle><div className="chart-summary"><strong>{String(items.length).padStart(2,'0')}<span> offers analyzed</span></strong><div className="chart-legend"><span><i/>Flagged</span><span><i/>Genuine</span></div></div><Trend items={items}/><div className="panel-foot"><span>Sample activity · Jul–Aug 2026</span><span>Review. Verify. Proceed.</span></div></section>
+    <section className="console-panel radar-panel"><PanelTitle icon={Radar} title="Defense perimeter"><span className="tiny-label">VISUALIZATION</span></PanelTitle><div className="radar-content"><RadarVisual/><div className="radar-copy"><span className="mini-label">KNOW BEFORE YOU TRUST</span><h3>Your next move,<br/>with eyes open.</h3><p>Inspect suspicious job offers before sharing money or personal information.</p><Link to="/app/text">Run a security check <ArrowRight size={14}/></Link></div></div><div className="radar-status"><span><span className="status-dot"/> ON-DEMAND ANALYSIS</span><span>4 SCAN CHANNELS</span></div></section></div>
+    <div className="section-heading"><h2><Crosshair size={17}/> Scan center</h2><span>ONE CHECK CAN CHANGE EVERYTHING</span></div>
+    <div className="scan-method-grid">{methods.map(({icon:Icon,name,description,to,tag},i)=><Link to={to} key={to} className="scan-method"><div className="method-top"><span className="method-icon"><Icon size={21} strokeWidth={1.5}/></span><span className="method-number">/ 0{i+1}</span><ArrowUpRight size={17} className="method-arrow"/></div><h3>{name}</h3><p>{description}</p><div className="method-action">{tag}<ArrowRight size={14}/></div></Link>)}</div>
+    <div className="bottom-grid"><section className="console-panel activity-panel"><PanelTitle icon={HistoryIcon} title="Recent investigations"><Link to="/history">View history <ArrowUpRight size={13}/></Link></PanelTitle><div className="activity-controls"><span className="tiny-label">SAMPLE INVESTIGATION LOG</span><div className="filter-tabs" aria-label="Filter sample investigations">{['all','scam','genuine'].map(f=><button key={f} aria-pressed={filter===f} className={filter===f?'active':''} onClick={()=>setFilter(f)}>{f==='scam'?'Flagged':f==='all'?'All': 'Genuine'}</button>)}</div></div><div className="investigation-table"><table><thead><tr><th>OFFER / SOURCE</th><th>VERDICT</th><th>CONFIDENCE</th><th>DATE</th></tr></thead><tbody>{rows.map(item=><tr key={item.id}><td><div className="offer-cell"><FileText size={16}/><div><strong>{item.title}</strong><small>{item.company} <span> / {item.method.toUpperCase()}</span></small></div></div></td><td><span className={`verdict ${item.verdict}`}><span/>{item.verdict==='scam'?'Flagged':'Genuine'}</span></td><td><div className="confidence-cell"><span>{Math.round(item.confidence*100)}%</span><div><i style={{width:`${item.confidence*100}%`}}/></div></div></td><td className="date-cell">{item.date.slice(5).replace('-',' / ')}</td></tr>)}</tbody></table></div><div className="panel-foot"><span>{rows.length} sample records shown</span><span>Illustrative data, not your scan history</span></div></section>
+    <section className="console-panel breakdown-panel"><PanelTitle icon={Shield} title="Risk distribution"/><div className="risk-donut"><svg viewBox="0 0 160 160" role="img" aria-label={`${flagged} flagged and ${genuine} genuine sample offers`}><circle cx="80" cy="80" r="60" fill="none" stroke="#a078ed" strokeWidth="15"/><circle className="donut-arc" cx="80" cy="80" r="60" fill="none" stroke="#f8bc58" strokeWidth="15" strokeDasharray={`${flagged/items.length*377} 377`} transform="rotate(-90 80 80)"/></svg><div><strong>{Math.round(flagged/items.length*100)}<small>%</small></strong><span>FLAGGED OFFERS</span></div></div><div className="distribution-row"><span><i/>Flagged offers</span><strong>{flagged}</strong></div><div className="distribution-row purple"><span><i/>Genuine offers</span><strong>{genuine}</strong></div><div className="insight-note"><TriangleAlert size={16}/><p>A confident prediction is a signal, not a guarantee. Always verify the recruiter independently.</p></div></section></div>
+    <Link to="/about" className="learn-strip"><span><Shield size={18}/><strong>Build your human firewall.</strong><span>Learn how ScamShield reads the warning signs.</span></span><ChevronRight size={18}/></Link>
+  </div>
+}
+function HistoryIcon(props) { return <SlidersHorizontal {...props}/> }

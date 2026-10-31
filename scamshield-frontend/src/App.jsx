@@ -12,13 +12,13 @@ import Profile from './pages/Profile'
 import Settings from './pages/Settings'
 import About from './pages/About'
 import NotFound from './pages/NotFound'
-import AICursor from './components/ui/AICursor'
+import { MotionConfig } from 'framer-motion'
 
 export default function App() {
   return (
-    <>
-      {/* Global premium AI cursor — covers all routes, disabled on touch */}
-      <AICursor />
+    <MotionConfig reducedMotion="user">
+
+
 
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -38,7 +38,8 @@ export default function App() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </MotionConfig>
   )
 }
+
 

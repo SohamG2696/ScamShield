@@ -3,7 +3,7 @@ import { cn } from '../../utils/cn'
 
 const VARIANTS = {
   primary:
-    'bg-gradient-to-r from-[#00F5D4] via-[#22D3EE] to-[#34D399] text-slate-950 font-bold shadow-[0_0_30px_rgba(0,245,212,0.65)] hover:shadow-[0_0_50px_rgba(0,245,212,0.9)] hover:brightness-125 border border-white/40',
+    'bg-gradient-to-r from-[#efc57f] to-[#d8a451] text-stone-950 font-semibold hover:brightness-110 border border-amber-200/30',
   secondary:
     'bg-white/15 text-white font-semibold border border-white/30 hover:bg-white/25 hover:border-white/60 shadow-[0_0_20px_rgba(255,255,255,0.18)] hover:shadow-[0_0_30px_rgba(255,255,255,0.35)]',
   outline:
@@ -50,3 +50,4 @@ export default function Button({
     </motion.button>
   )
 }
+
