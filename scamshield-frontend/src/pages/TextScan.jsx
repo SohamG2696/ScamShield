@@ -59,7 +59,7 @@ export default function TextScan() {
           <FiFileText className="text-cyan" />
           Scan a job description
         </h1>
-        <p className="text-slate-400 mt-1.5">Paste the full listing text — the more context, the more accurate the verdict.</p>
+        <p className="text-slate-400 mt-1.5">Paste the listing, then analyze it to see the risk assessment.</p>
       </div>
 
       <GlassCard hover={false} className="p-6">
@@ -70,14 +70,16 @@ export default function TextScan() {
             </motion.div>
           ) : (
             <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <label htmlFor="job-listing" className="block mb-2 text-sm font-semibold text-slate-100">Job listing text</label>
               <textarea
+                id="job-listing"
                 value={text}
                 onChange={(e) => { setText(e.target.value.slice(0, MAX_CHARS)); setNotJobReason(null) }}
-                placeholder="Paste the job posting here — title, description, salary, and any recruiter contact details…"
-                rows={14}
+                placeholder="Include the role, pay, and any instructions from the recruiter…"
+                rows={9}
                 className="w-full bg-white/[0.08] border border-white/25 rounded-xl p-4 text-sm text-white placeholder:text-slate-400 outline-none focus:border-cyan focus:ring-2 focus:ring-cyan/40 focus:bg-white/[0.12] transition-all resize-none font-body shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
               />
-              <div className="flex items-center justify-between mt-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-3">
                 <span className="text-xs font-mono text-slate-300 font-semibold">
                   {text.length.toLocaleString()} / {MAX_CHARS.toLocaleString()}
                 </span>

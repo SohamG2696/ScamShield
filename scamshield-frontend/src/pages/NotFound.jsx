@@ -5,7 +5,7 @@ import Button from '../components/ui/Button'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-base-900 bg-grid-glow flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-screen bg-slate-950/40 flex flex-col items-center justify-center px-6 text-center">
       <motion.div
         animate={{ y: [0, -12, 0] }}
         transition={{ duration: 3, repeat: Infinity }}

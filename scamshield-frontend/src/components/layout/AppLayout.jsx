@@ -23,7 +23,7 @@ export function SecurityShell({ children }) {
       <div className="user-strip"><span className="avatar">{user?.name?.charAt(0) || 'G'}</span><span><strong>{user?.name || 'Guest workspace'}</strong><small>{isLoggedIn ? 'Personal account' : 'No account required'}</small></span>{isLoggedIn && <button onClick={logout} aria-label="Sign out"><LogOut size={16}/></button>}</div></div>
     </aside>
     <div className="security-body"><header className="security-topbar"><div className="breadcrumb">Workspace <ChevronRight size={13}/><span>{navigation.find(([to]) => to === pathname)?.[1] || (pathname === '/' ? 'Overview' : 'ScamShield')}</span></div><div className="topbar-actions"><span className="edition"><span className="status-dot"/> SECURITY CONSOLE</span>{!isLoggedIn && <button className="quiet-button" disabled={loading} onClick={login}>{loading ? 'Connecting…' : 'Sign in'} <ArrowUpRight size={14}/></button>}<Link to="/profile" className="avatar" aria-label="Open profile">{user?.name?.charAt(0) || 'G'}</Link></div></header>
-    <main className="security-main">{children || <Outlet/>}</main>
+    <main className="security-main"><div key={pathname} className="workspace-page">{children || <Outlet/>}</div></main>
     <footer className="security-footer"><span><Shield size={12}/> SCAMSHIELD / JOB OFFER INTELLIGENCE</span><span>Stay skeptical. Stay protected.</span></footer></div>
   </div>
 }
