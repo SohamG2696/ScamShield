@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiImage, FiZap, FiZoomIn, FiX, FiAlertCircle } from 'react-icons/fi'
@@ -8,7 +8,6 @@ import UploadDropzone from '../components/ui/UploadDropzone'
 import ScanningLoader from '../components/ui/ScanningLoader'
 import { useToast } from '../hooks/useToast.jsx'
 import { predictImage } from '../services/predictService'
-import { makeDummyResult } from '../utils/dummyData'
 
 export default function ImageScan() {
   const [file, setFile] = useState(null)
@@ -16,6 +15,8 @@ export default function ImageScan() {
   const [zoomed, setZoomed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [notJobReason, setNotJobReason] = useState(null)
+  const previewDialogRef = useRef(null)
+  const zoomButtonRef = useRef(null)
   const navigate = useNavigate()
   const { push } = useToast()
 
@@ -28,6 +29,16 @@ export default function ImageScan() {
     setPreviewUrl(url)
     return () => URL.revokeObjectURL(url)
   }, [file])
+
+  useEffect(() => {
+    if (!zoomed) return
+    const dialog = previewDialogRef.current
+    dialog.showModal()
+    return () => {
+      dialog.close()
+      zoomButtonRef.current?.focus()
+    }
+  }, [zoomed])
 
   const handleFile = (f) => {
     if (!f.type.startsWith('image/')) {
@@ -79,20 +90,23 @@ export default function ImageScan() {
               {!file ? (
                 <UploadDropzone accept="image/*" file={file} onFile={handleFile} hint="PNG or JPG up to 8MB" icon={FiImage} />
               ) : (
-                <div className="relative rounded-xl overflow-hidden group">
+                <div className="rounded-xl overflow-hidden">
                   <img src={previewUrl} alt="Uploaded preview" className="w-full max-h-80 object-contain bg-black/30" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+                  <div className="flex flex-wrap items-center justify-end gap-3 pt-3">
                     <button
+                      type="button"
+                      ref={zoomButtonRef}
                       onClick={() => setZoomed(true)}
-                      className="w-10 h-10 rounded-lg glass-strong flex items-center justify-center hover:text-cyan"
+                      className="px-3 py-3 rounded-lg inline-flex items-center gap-2 text-sm text-slate-200 hover:bg-white/10"
                     >
-                      <FiZoomIn size={16} />
+                      <FiZoomIn size={16} aria-hidden="true" /> Enlarge preview
                     </button>
                     <button
+                      type="button"
                       onClick={() => setFile(null)}
-                      className="w-10 h-10 rounded-lg glass-strong flex items-center justify-center hover:text-danger"
+                      className="px-3 py-3 rounded-lg inline-flex items-center gap-2 text-sm text-slate-200 hover:bg-white/10"
                     >
-                      <FiX size={16} />
+                      <FiX size={16} aria-hidden="true" /> Remove image
                     </button>
                   </div>
                 </div>
@@ -151,25 +165,27 @@ export default function ImageScan() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {zoomed && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+      <dialog
+        ref={previewDialogRef}
+        aria-label="Enlarged image preview"
+        onCancel={() => setZoomed(false)}
+        onClose={() => setZoomed(false)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setZoomed(false)
+        }}
+        className="m-auto max-w-[95vw] max-h-[95vh] p-4 rounded-xl bg-slate-950 text-white backdrop:bg-black/80"
+      >
+        <div className="flex justify-end mb-3">
+          <button
+            type="button"
             onClick={() => setZoomed(false)}
-            className="fixed inset-0 z-[90] bg-black/85 backdrop-blur-sm flex items-center justify-center p-8 cursor-zoom-out"
+            className="inline-flex items-center gap-2 px-3 py-3 rounded-lg text-sm hover:bg-white/10"
           >
-            <motion.img
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              src={previewUrl}
-              alt="Zoomed preview"
-              className="max-w-full max-h-full rounded-xl shadow-glass"
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <FiX size={18} aria-hidden="true" /> Close preview
+          </button>
+        </div>
+        {previewUrl && <img src={previewUrl} alt="Enlarged uploaded screenshot" className="max-w-full max-h-[75vh] object-contain" />}
+      </dialog>
     </div>
   )
 }

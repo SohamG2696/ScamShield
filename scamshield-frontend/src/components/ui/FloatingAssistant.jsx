@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiMessageCircle, FiX, FiSend, FiShield, FiRefreshCw } from 'react-icons/fi'
+import { FiX, FiSend, FiShield, FiRefreshCw } from 'react-icons/fi'
 import { apiClient } from '../../services/apiClient'
 
 const SUGGESTED = [

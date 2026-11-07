@@ -3,7 +3,6 @@ import shutil
 import easyocr
 import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from utils.groq_client import parse_job_text_to_json
 from predictor import predict_explain_log_job
 from config import UPLOAD_DIR
 
@@ -11,11 +10,11 @@ logger = logging.getLogger("scamshield.routes.image")
 
 router = APIRouter()
 
-# Initialize EasyOCR reader once for English language
+# Read Hindi and English before normalizing extracted text for the classifier.
 reader = None
 try:
     logger.info("Initializing EasyOCR reader (CPU mode)...")
-    reader = easyocr.Reader(['en'], gpu=False, verbose=False)
+    reader = easyocr.Reader(['hi', 'en'], gpu=False, verbose=False)
     logger.info("EasyOCR reader initialized successfully.")
 except Exception as e:
     logger.error(f"Failed to initialize EasyOCR reader: {e}")
@@ -56,19 +55,15 @@ async def predict_image(file: UploadFile = File(...)):
                 detail="The uploaded image contains no readable text."
             )
 
-        # Step 2 & 4: Convert raw text into structured JSON fields using Groq
-        structured_fields = parse_job_text_to_json(extracted_text)
-
-        # Step 5 & 6: Run classification pipeline + explainability + logging
+        # Translate Hindi, extract fields, and analyze through the shared workflow.
         result = await predict_explain_log_job(
-            job_data=structured_fields,
+            job_data=None,
             raw_text=extracted_text,
             input_type="image"
         )
 
         return {
             "filename": file.filename,
-            "extracted_fields": structured_fields,
             **result
         }
     except HTTPException as he:

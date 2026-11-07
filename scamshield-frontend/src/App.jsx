@@ -9,7 +9,6 @@ import GmailScan from './pages/GmailScan'
 import Result from './pages/Result'
 import History from './pages/History'
 import Profile from './pages/Profile'
-import Settings from './pages/Settings'
 import About from './pages/About'
 import NotFound from './pages/NotFound'
 import { MotionConfig } from 'framer-motion'
@@ -32,7 +31,6 @@ export default function App() {
           <Route path="/result" element={<Result />} />
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
           <Route path="/about" element={<About />} />
         </Route>
 

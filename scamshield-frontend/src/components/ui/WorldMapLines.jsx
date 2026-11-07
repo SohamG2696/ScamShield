@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 
 // Simplified dot-matrix world map continents (normalized 0-1 x,y coords)

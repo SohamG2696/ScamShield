@@ -32,29 +32,33 @@ export default function UploadDropzone({ accept, file, onFile, onRemove, hint, i
             }}
             onDragLeave={() => setDragging(false)}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
             className={cn(
-              'cursor-pointer rounded-2xl border-2 border-dashed p-12 flex flex-col items-center justify-center text-center transition-all duration-200',
+              'rounded-xl border border-dashed px-5 py-9 flex flex-col items-center justify-center text-center transition-colors duration-200',
               dragging
-                ? 'border-cyan bg-cyan/15 shadow-[0_0_30px_rgba(0,245,212,0.3)]'
-                : 'border-white/30 hover:border-cyan/70 bg-white/[0.07] hover:bg-white/[0.12] shadow-[0_0_20px_rgba(255,255,255,0.05)]'
+                ? 'border-cyan bg-cyan/10'
+                : 'border-white/25 bg-white/[0.02]'
             )}
           >
-            <motion.div
-              animate={dragging ? { scale: 1.15, y: -6 } : { scale: 1, y: [0, -8, 0] }}
-              transition={dragging ? { type: 'spring', stiffness: 300 } : { duration: 2.4, repeat: Infinity }}
-              className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan/30 to-violet/30 flex items-center justify-center mb-4 border border-white/20 shadow-[0_0_20px_rgba(0,245,212,0.3)]"
-            >
-              <Icon size={28} className="text-cyan" />
-            </motion.div>
-            <p className="font-semibold text-white">Drag &amp; drop, or click to browse</p>
+            <Icon size={28} className="text-slate-300 mb-4" aria-hidden="true" />
+            <p className="font-medium text-white">Drop your file here</p>
             <p className="text-sm text-slate-300 mt-1">{hint}</p>
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="mt-5 px-5 py-3 rounded-lg border border-white/30 text-sm font-semibold text-white hover:bg-white/10 transition-colors"
+            >
+              Browse files
+            </button>
             <input
               ref={inputRef}
               type="file"
               accept={accept}
               className="hidden"
-              onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
+              onChange={(e) => {
+                const selected = e.target.files?.[0]
+                if (selected) onFile(selected)
+                e.target.value = ''
+              }}
             />
           </motion.div>
         ) : (

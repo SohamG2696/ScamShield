@@ -1,6 +1,5 @@
 import joblib
 import pandas as pd
-import numpy as np
 
 from config import (
     ENCODER_PATH,

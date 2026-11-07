@@ -1,10 +1,11 @@
 import joblib
-import numpy as np
 import time
 
 from config import MODEL_PATH
+from fastapi import HTTPException
 from pipeline import preprocess_job
-from utils.groq_client import check_is_job_related, generate_explainability, generate_professional_report
+from utils.groq_client import check_is_job_related, generate_explainability, generate_professional_report, parse_job_text_to_json
+from utils.translation import normalize_hindi_input, TranslationError
 from utils.db_utils import log_prediction_to_supabase
 
 # -----------------------------------------
@@ -58,7 +59,7 @@ def predict_job(job):
 # Unified Predict, Explain, and Log Workflow
 # -----------------------------------------
 
-async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str = "text") -> dict:
+async def predict_explain_log_job(job_data: dict | None, raw_text: str, input_type: str = "text") -> dict:
     """
     Executes the full prediction workflow:
     1. Preprocesses and predicts using LightGBM.
@@ -68,10 +69,25 @@ async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str
     """
     start_time = time.time()
 
+    try:
+        raw_text, job_data, translated = normalize_hindi_input(raw_text, job_data)
+    except TranslationError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    if job_data is None:
+        job_data = parse_job_text_to_json(raw_text, input_type=input_type)
+
+    metadata = {"translation": {"applied": translated}}
+    if translated:
+        metadata["translation"].update(source_language="hi", analysis_language="en")
+    if input_type in ("pdf", "image"):
+        metadata["extracted_fields"] = job_data
+
     # ── Step 0: Check if text is actually a job / internship posting or employment email ──
     relevance = check_is_job_related(raw_text, input_type=input_type)
     if not relevance["is_job_related"]:
         return {
+            **metadata,
             "prediction": "NOT_JOB_RELATED",
             "confidence": 0.0,
             "scam_probability": 0.0,
@@ -125,6 +141,7 @@ async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str
 
     # Add explanation, report, and processing time to response
     return {
+        **metadata,
         **prediction_res,
         "input_type": input_type,
         "explanation": explanation,

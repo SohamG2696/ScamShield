@@ -1,55 +1,33 @@
-import { motion } from 'framer-motion'
-import { FiFileText, FiCpu, FiFlag } from 'react-icons/fi'
-import GlassCard from '../components/ui/GlassCard'
-
 const STEPS = [
   {
-    icon: FiFileText,
-    title: 'You share a posting',
-    desc: 'Paste text, upload a PDF, or drop a screenshot — ScamShield extracts the underlying text either way.',
+    title: 'Share the offer',
+    description: 'Paste a job listing or recruiter message, upload a PDF or screenshot, or choose an email from Gmail.',
   },
   {
-    icon: FiCpu,
-    title: 'The model scores it',
-    desc: 'A classifier trained on thousands of labeled postings weighs language patterns, salary plausibility, and contact details.',
+    title: 'Review the assessment',
+    description: 'ScamShield analyzes the content for recruitment scam patterns. The result brings together the predicted risk and any available explanation of the warning signs.',
   },
   {
-    icon: FiFlag,
-    title: 'You get a verdict and why',
-    desc: 'A confidence score, a risk level, and the specific signals that drove the result — not just a red or green light.',
+    title: 'Verify before you proceed',
+    description: "Check the vacancy on the company's official careers page and contact the company independently. A lower-risk assessment cannot confirm who sent an offer.",
   },
 ]
 
 export default function About() {
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-10">
-        <h1 className="text-2xl md:text-3xl font-display font-semibold">How ScamShield works</h1>
-        <p className="text-slate-400 mt-2">A quick look under the hood.</p>
-      </div>
-
-      <div className="space-y-4">
-        {STEPS.map((s, i) => (
-          <motion.div key={s.title} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
-            <GlassCard hover={false} className="p-6 flex gap-5">
-              <div className="w-11 h-11 rounded-xl glass flex items-center justify-center shrink-0">
-                <s.icon className="text-cyan" size={20} />
-              </div>
-              <div>
-                <h3 className="font-display font-semibold mb-1.5">{s.title}</h3>
-                <p className="text-sm text-slate-400 leading-relaxed">{s.desc}</p>
-              </div>
-            </GlassCard>
-          </motion.div>
+      <header className="mb-6">
+        <h1 className="text-3xl font-display font-semibold">A second look at the details.</h1>
+        <p className="text-slate-400 mt-3">How ScamShield helps you assess a job offer.</p>
+      </header>
+      <ol className="about-steps">
+        {STEPS.map(({ title, description }) => (
+          <li key={title}>
+            <div><h2>{title}</h2><p>{description}</p></div>
+          </li>
         ))}
-      </div>
-
-      <GlassCard hover={false} className="p-6 mt-8">
-        <p className="text-sm text-slate-400 leading-relaxed">
-          ScamShield is a decision-support tool, not a guarantee. Always independently verify a recruiter and
-          company before sharing personal or financial information, and never pay a fee to be hired.
-        </p>
-      </GlassCard>
+      </ol>
+      <p className="about-note">Be especially cautious about requests for payment or sensitive personal information before you have verified the employer. Use the assessment to inform your next step.</p>
     </div>
   )
 }

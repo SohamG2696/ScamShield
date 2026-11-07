@@ -20,7 +20,6 @@ import { useAuth } from '../contexts/GoogleAuthContext'
 import { useToast } from '../hooks/useToast.jsx'
 import { fetchInbox, fetchEmailSummaries, decodeEmailBody } from '../services/gmailService'
 import { predictText } from '../services/predictService'
-import { makeDummyResult } from '../utils/dummyData'
 
 function formatDate(dateStr) {
   if (!dateStr) return ''

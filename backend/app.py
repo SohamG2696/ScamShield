@@ -1,12 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from predictor import predict_explain_log_job
-from schemas import JobInput
 from routes.pdf import router as pdf_router
 from routes.image import router as image_router
 from routes.chat import router as chat_router
-from utils.groq_client import parse_job_text_to_json
-from typing import Union, Dict, Any
+from typing import Dict, Any
 
 app = FastAPI(
     title="ScamShield API",
@@ -51,9 +49,9 @@ async def predict(payload: Dict[str, Any]):
         else:
             input_type = "text"
 
-    # If raw text was provided, parse it with Groq into structured job fields
+    # The shared workflow translates Hindi before extracting structured fields.
     if raw_text and not payload.get("title"):
-        job_data = parse_job_text_to_json(raw_text, input_type=input_type)
+        job_data = None
     else:
         job_data = {
             "title": payload.get("title", ""),
@@ -66,6 +64,9 @@ async def predict(payload: Dict[str, Any]):
             "company_website": payload.get("company_website", ""),
             "location": payload.get("location", "")
         }
+        for field in ("requirements", "benefits", "remote", "company_email"):
+            if field in payload:
+                job_data[field] = payload[field]
         if not raw_text:
             raw_text = (
                 f"Title: {job_data['title']}\n"

@@ -31,20 +31,22 @@ export default function History() {
 
   const handleDelete = (id) => {
     setItems((prev) => prev.filter((i) => i.id !== id))
-    push('Scan removed from history.', { type: 'info', duration: 2500 })
+    setPage((current) => Math.min(current, Math.max(1, Math.ceil((filtered.length - 1) / PAGE_SIZE))))
+    push('Sample removed for this visit.', { type: 'info', duration: 2500 })
   }
 
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-display font-semibold">Scan history</h1>
-        <p className="text-slate-400 mt-1.5">Every posting you've checked, in one place.</p>
+        <h1 className="text-2xl md:text-3xl font-display font-semibold">Sample scan history</h1>
+        <p className="text-slate-400 mt-1.5">Explore example scans. Your own scans are not saved here, and removed examples return when you reopen this page.</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan font-bold" size={16} />
           <input
+            aria-label="Search sample scans by title or company"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -58,13 +60,14 @@ export default function History() {
           {FILTERS.map((f) => (
             <button
               key={f}
+              aria-pressed={filter === f}
               onClick={() => {
                 setFilter(f)
                 setPage(1)
               }}
               className={`px-4 py-1.5 rounded-lg text-sm font-semibold capitalize transition-all ${
                 filter === f
-                  ? 'bg-gradient-to-r from-cyan to-emerald text-slate-950 shadow-[0_0_15px_rgba(0,245,212,0.5)]'
+                  ? 'bg-[#e8c48d] text-slate-950'
                   : 'text-slate-200 hover:text-white hover:bg-white/15'
               }`}
             >
@@ -76,10 +79,10 @@ export default function History() {
 
       {paged.length === 0 ? (
         <GlassCard hover={false} className="p-14 text-center text-slate-500">
-          No scans match your filters yet.
+          No sample scans match your filters.
         </GlassCard>
       ) : (
-        <div className="space-y-3">
+        <div className="history-list">
           <AnimatePresence>
             {paged.map((item, i) => {
               const MethodIcon = METHOD_ICON[item.method]
@@ -92,7 +95,7 @@ export default function History() {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.04 }}
                 >
-                  <GlassCard hover={false} className="p-4 flex items-center gap-4">
+                  <GlassCard hover={false} className="history-row flex items-center gap-4">
                     <div className="w-10 h-10 rounded-lg glass flex items-center justify-center shrink-0">
                       <MethodIcon size={16} className="text-slate-400" />
                     </div>
@@ -113,7 +116,7 @@ export default function History() {
                     <button
                       onClick={() => handleDelete(item.id)}
                       className="w-8 h-8 rounded-lg hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-danger transition-colors shrink-0"
-                      aria-label="Delete scan"
+                      aria-label={`Remove sample ${item.title}`}
                     >
                       <FiTrash2 size={14} />
                     </button>
@@ -128,6 +131,7 @@ export default function History() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-3 mt-8">
           <button
+            aria-label="Previous page"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
             className="w-9 h-9 rounded-lg glass flex items-center justify-center disabled:opacity-30 hover:text-cyan transition-colors"
@@ -138,6 +142,7 @@ export default function History() {
             {page} / {totalPages}
           </span>
           <button
+            aria-label="Next page"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className="w-9 h-9 rounded-lg glass flex items-center justify-center disabled:opacity-30 hover:text-cyan transition-colors"

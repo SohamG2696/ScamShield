@@ -2,7 +2,7 @@ import { apiClient } from './apiClient'
 
 // POST /predict/text — body: { text: string, input_type?: string }
 export async function predictText(text, inputType = 'text') {
-  const { data } = await apiClient.post('/predict/text', { text, input_type: inputType })
+  const { data } = await apiClient.post('/predict/text', { text, input_type: inputType }, { timeout: 120000 })
   return data
 }
 
@@ -11,6 +11,7 @@ export async function predictPdf(file, onUploadProgress) {
   const form = new FormData()
   form.append('file', file)
   const { data } = await apiClient.post('/predict/pdf', form, {
+    timeout: 120000,
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: (evt) => {
       if (onUploadProgress && evt.total) {
@@ -26,6 +27,7 @@ export async function predictImage(file, onUploadProgress) {
   const form = new FormData()
   form.append('file', file)
   const { data } = await apiClient.post('/predict/image', form, {
+    timeout: 120000,
     headers: { 'Content-Type': 'multipart/form-data' },
     onUploadProgress: (evt) => {
       if (onUploadProgress && evt.total) {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Shield, Mail, FileText, Globe, Brain } from 'lucide-react'
+import { Brain } from 'lucide-react'
 
 const BADGES = [
   { icon: '✓', label: 'Gmail Security', color: '#5ED29C' },

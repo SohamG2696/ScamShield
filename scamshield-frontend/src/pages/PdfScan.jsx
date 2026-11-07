@@ -8,7 +8,6 @@ import UploadDropzone from '../components/ui/UploadDropzone'
 import ScanningLoader from '../components/ui/ScanningLoader'
 import { useToast } from '../hooks/useToast.jsx'
 import { predictPdf } from '../services/predictService'
-import { makeDummyResult } from '../utils/dummyData'
 
 export default function PdfScan() {
   const [file, setFile] = useState(null)

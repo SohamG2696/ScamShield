@@ -39,10 +39,10 @@ export default function ScanningLoader({ label = 'Analyzing job posting' }) {
   const lines = lowerLabel.includes('email') || lowerLabel.includes('inbox')
     ? EMAIL_LINES
     : lowerLabel.includes('pdf')
-    ? PDF_LINES
-    : lowerLabel.includes('image')
-    ? IMAGE_LINES
-    : DEFAULT_LINES
+      ? PDF_LINES
+      : lowerLabel.includes('image')
+        ? IMAGE_LINES
+        : DEFAULT_LINES
 
   const [activeLine, setActiveLine] = useState(0)
 

@@ -5,7 +5,7 @@ export default function GlassCard({ children, className, hover = true, as: Comp 
   return (
     <Comp
       className={cn('glass rounded-2xl shadow-glass', className)}
-      whileHover={hover ? { y: -6, borderColor: 'rgba(0,229,255,0.35)' } : undefined}
+      whileHover={hover ? { borderColor: 'rgba(166,187,211,0.4)' } : undefined}
       transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       {...props}
     >
