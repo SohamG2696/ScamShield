@@ -1,8 +1,7 @@
 import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utils.groq_client import client
-from config import GROQ_MODEL
+from utils.groq_client import client, call_groq_chat
 
 logger = logging.getLogger("scamshield.chat")
 
@@ -18,14 +17,14 @@ ScamShield is an AI-powered job scam detection tool that helps users identify fr
 
 You help users with:
 - Understanding ScamShield's results and verdict reasoning
-- Spotting red flags in job postings (vague descriptions, upfront fees, unrealistic salaries, free email domains, etc.)
+- Spotting red flags in job postings and emails (vague descriptions, upfront fees, unrealistic salaries, free email domains like @gmail.com, text-only interviews)
 - Cybersecurity best practices when job searching
 - How to verify companies, recruiters, and job offers
 - General questions about job scam tactics
 
 Keep answers concise (2-4 sentences unless more detail is needed), conversational, and actionable.
 Use bullet points when listing multiple items. Never make up specific company data.
-If the user shares a job posting snippet, analyze it for red flags.
+If the user shares a job posting or email snippet, analyze it for red flags.
 """
 
 
@@ -52,14 +51,12 @@ async def chat(req: ChatRequest):
         groq_messages.append({"role": msg.role, "content": msg.content})
 
     try:
-        completion = client.chat.completions.create(
+        reply = call_groq_chat(
             messages=groq_messages,
-            model=GROQ_MODEL,
             temperature=0.6,
             max_tokens=512,
         )
-        reply = completion.choices[0].message.content.strip()
-        return {"reply": reply}
+        return {"reply": reply.strip()}
     except Exception as e:
         logger.error(f"Chat completion failed: {e}")
         return {

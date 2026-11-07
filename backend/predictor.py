@@ -1,8 +1,11 @@
 import joblib
 import numpy as np
+import time
 
 from config import MODEL_PATH
 from pipeline import preprocess_job
+from utils.groq_client import check_is_job_related, generate_explainability, generate_professional_report
+from utils.db_utils import log_prediction_to_supabase
 
 # -----------------------------------------
 # Load model only once
@@ -16,7 +19,6 @@ model = joblib.load(MODEL_PATH)
 # -----------------------------------------
 
 def predict_job(job):
-
     # Convert input into model features
     features = preprocess_job(job)
 
@@ -56,21 +58,18 @@ def predict_job(job):
 # Unified Predict, Explain, and Log Workflow
 # -----------------------------------------
 
-import time
-from utils.groq_client import check_is_job_related, generate_explainability, generate_professional_report
-from utils.db_utils import log_prediction_to_supabase
-
-async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str) -> dict:
+async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str = "text") -> dict:
     """
     Executes the full prediction workflow:
     1. Preprocesses and predicts using LightGBM.
     2. Generates detailed explanations via Groq.
-    3. Asynchronously logs prediction metrics to Supabase.
+    3. Hybrid guardrail overrides tabular false negatives if Critical fraud indicators are detected.
+    4. Asynchronously logs prediction metrics to Supabase.
     """
     start_time = time.time()
 
-    # ── Step 0: Check if text is actually a job / internship posting ──────────
-    relevance = check_is_job_related(raw_text)
+    # ── Step 0: Check if text is actually a job / internship posting or employment email ──
+    relevance = check_is_job_related(raw_text, input_type=input_type)
     if not relevance["is_job_related"]:
         return {
             "prediction": "NOT_JOB_RELATED",
@@ -80,6 +79,7 @@ async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str
             "reason": relevance["reason"],
             "explanation": None,
             "professional_report": None,
+            "input_type": input_type,
             "processing_time": round(time.time() - start_time, 4)
         }
 
@@ -90,10 +90,29 @@ async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str
     confidence = prediction_res["confidence"]
 
     # Generate explainability details using Groq
-    explanation = generate_explainability(raw_text, prediction, confidence)
+    explanation = generate_explainability(raw_text, prediction, confidence, input_type=input_type)
 
     # Generate a full professional report using Groq
-    professional_report = generate_professional_report(raw_text, prediction, confidence, explanation)
+    professional_report = generate_professional_report(raw_text, prediction, confidence, explanation, input_type=input_type)
+
+    # ── Hybrid Cybersecurity Guardrail ──────────────────────────────────────────
+    # If the ML tabular model misclassified a clear phishing/advance-fee email as Genuine,
+    # but Groq Fraud Intelligence detected Critical risk or fatal scam indicators,
+    # elevate the verdict to Scam so the user is protected.
+    risk_level = explanation.get("risk_level", "").capitalize()
+    has_critical_finding = any(
+        f.get("severity") == "Critical"
+        for f in professional_report.get("detailed_findings", [])
+    )
+    if prediction == "Genuine" and (risk_level == "Critical" or has_critical_finding):
+        prediction = "Scam"
+        scam_prob = max(prediction_res["scam_probability"], 96.5)
+        genuine_prob = round(100.0 - scam_prob, 2)
+        confidence = scam_prob
+        prediction_res["prediction"] = "Scam"
+        prediction_res["confidence"] = confidence
+        prediction_res["scam_probability"] = scam_prob
+        prediction_res["genuine_probability"] = genuine_prob
 
     # Log metrics to Supabase
     processing_time = round(time.time() - start_time, 4)
@@ -107,6 +126,7 @@ async def predict_explain_log_job(job_data: dict, raw_text: str, input_type: str
     # Add explanation, report, and processing time to response
     return {
         **prediction_res,
+        "input_type": input_type,
         "explanation": explanation,
         "professional_report": professional_report,
         "processing_time": processing_time

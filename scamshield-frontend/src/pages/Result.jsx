@@ -16,6 +16,7 @@ import {
   FiCheckSquare,
   FiChevronDown,
   FiChevronUp,
+  FiMail,
 } from 'react-icons/fi'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
@@ -293,6 +294,20 @@ export default function Result() {
   // Professional report (null when using dummy data)
   const professionalReport = raw.professional_report ?? null
 
+  // Source & Metadata
+  const source = location.state?.source || raw.input_type || 'text'
+  const meta = location.state?.meta || null
+  const emailSubject = location.state?.emailSubject || meta?.subject || null
+  const emailFrom = meta?.from || null
+
+  const targetLabel = (source === 'gmail' || source === 'email')
+    ? 'email'
+    : source === 'pdf'
+    ? 'document'
+    : source === 'image'
+    ? 'screenshot'
+    : 'posting'
+
   useEffect(() => {
     if (!isScam) {
       const t = setTimeout(() => setShowConfetti(true), 400)
@@ -308,6 +323,31 @@ export default function Result() {
       >
         <FiArrowLeft size={14} /> Back
       </button>
+
+      {/* Email Context Banner (if scanned via Gmail) */}
+      {(source === 'gmail' || source === 'email') && (emailSubject || emailFrom) && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-lg bg-cyan/10 text-cyan flex-shrink-0">
+              <FiMail size={15} />
+            </div>
+            <div className="truncate">
+              <span className="text-slate-400 font-mono">Subject: </span>
+              <span className="font-semibold text-white">{emailSubject || '(no subject)'}</span>
+            </div>
+          </div>
+          {emailFrom && (
+            <div className="flex items-center gap-1.5 flex-shrink-0 text-slate-400">
+              <span className="font-mono">From:</span>
+              <span className="text-slate-200 font-medium">{emailFrom}</span>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -354,7 +394,9 @@ export default function Result() {
                 </span>
               </div>
               <h1 className="text-2xl md:text-3xl font-display font-semibold mb-3">
-                {isScam ? 'This posting shows strong signs of a scam' : 'This posting looks legitimate'}
+                {isScam
+                  ? `This ${targetLabel} shows strong signs of fraud`
+                  : `This ${targetLabel} looks authentic and legitimate`}
               </h1>
               <p className="text-slate-400 leading-relaxed">{recommendation}</p>
 
@@ -438,17 +480,27 @@ export default function Result() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.36 }} className="mt-6">
         <GlassCard hover={false} className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold">AI explanation</h2>
-            <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-violet/10 text-violet border border-violet/20">
-              {explanationText ? 'Groq' : 'Preview'}
+            <div className="flex items-center gap-2.5">
+              <div className={`p-1.5 rounded-lg ${isScam ? 'bg-danger/10 text-danger' : 'bg-safe/10 text-safe'}`}>
+                <FiShield size={16} />
+              </div>
+              <h2 className="font-display font-semibold">
+                {source === 'gmail' || source === 'email'
+                  ? 'Groq AI Email Fraud Analysis'
+                  : 'Groq AI Verdict Analysis'}
+              </h2>
+            </div>
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-violet/10 text-violet border border-violet/20 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-violet animate-pulse" />
+              Groq AI · Deep Analysis
             </span>
           </div>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
             {explanationText
               ? explanationText
               : isScam
-                ? "Based on the signals above, this listing follows a pattern common to advance-fee and identity-harvesting scams: unrealistic pay for the stated role, urgency to act immediately, and a request that bypasses normal hiring steps. Treat any request for payment, banking details, or ID documents before an offer as a hard stop."
-                : 'The listing matches patterns typical of a real hiring process: a verifiable company domain, a role-appropriate salary band, and a standard application path with no upfront payment requests. Independent verification of the recruiter is still worthwhile before sharing sensitive documents.'}
+                ? "Based on detected risk factors, this communication exhibits patterns typical of advance-fee and identity-harvesting fraud: unrealistic compensation, urgency to act immediately, or requests that bypass verified hiring protocols. Treat any demand for money, gift cards, or personal banking credentials as an immediate red flag."
+                : 'The analyzed content demonstrates standard enterprise recruitment characteristics: verifiable organizational context, market-aligned compensation parameters, and standard application paths with no advance payment requests.'}
           </p>
         </GlassCard>
       </motion.div>

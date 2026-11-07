@@ -86,7 +86,7 @@ export default function GmailScan() {
     try {
       const body = decodeEmailBody(selectedEmail.raw)
       const fullText = `Subject: ${selectedEmail.subject}\nFrom: ${selectedEmail.from}\n\n${body}`
-      const data = await predictText(fullText)
+      const data = await predictText(fullText, 'email')
 
       // Not a job-related email
       if (data?.prediction === 'NOT_JOB_RELATED') {
@@ -98,7 +98,11 @@ export default function GmailScan() {
         state: {
           result: data,
           source: 'gmail',
-          emailSubject: selectedEmail.subject,
+          meta: {
+            subject: selectedEmail.subject,
+            from: selectedEmail.from,
+            date: selectedEmail.date,
+          },
         },
       })
     } catch (err) {

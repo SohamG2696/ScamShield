@@ -5,6 +5,8 @@ from schemas import JobInput
 from routes.pdf import router as pdf_router
 from routes.image import router as image_router
 from routes.chat import router as chat_router
+from utils.groq_client import parse_job_text_to_json
+from typing import Union, Dict, Any
 
 app = FastAPI(
     title="ScamShield API",
@@ -34,16 +36,24 @@ def health():
     }
 
 
-from utils.groq_client import parse_job_text_to_json
-from typing import Union, Dict, Any
-
 @app.post("/predict/text")
 async def predict(payload: Dict[str, Any]):
     raw_text = payload.get("text") or payload.get("description") or ""
 
+    # Detect or extract input_type
+    input_type = payload.get("input_type")
+    if not input_type:
+        lower = raw_text.lower()
+        if "subject:" in lower and ("from:" in lower or "to:" in lower or "dear" in lower):
+            input_type = "email"
+        elif ("from:" in lower or "subject:" in lower) and "@" in raw_text:
+            input_type = "email"
+        else:
+            input_type = "text"
+
     # If raw text was provided, parse it with Groq into structured job fields
     if raw_text and not payload.get("title"):
-        job_data = parse_job_text_to_json(raw_text)
+        job_data = parse_job_text_to_json(raw_text, input_type=input_type)
     else:
         job_data = {
             "title": payload.get("title", ""),
@@ -70,7 +80,7 @@ async def predict(payload: Dict[str, Any]):
     result = await predict_explain_log_job(
         job_data=job_data,
         raw_text=raw_text,
-        input_type="text"
+        input_type=input_type
     )
 
     return result

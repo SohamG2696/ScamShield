@@ -1,8 +1,8 @@
 import { apiClient } from './apiClient'
 
-// POST /predict/text — body: { text: string }
-export async function predictText(text) {
-  const { data } = await apiClient.post('/predict/text', { text })
+// POST /predict/text — body: { text: string, input_type?: string }
+export async function predictText(text, inputType = 'text') {
+  const { data } = await apiClient.post('/predict/text', { text, input_type: inputType })
   return data
 }
 
