@@ -63,7 +63,7 @@ export default function ImageScan() {
 
       navigate('/result', { state: { result: data, source: 'image' } })
     } catch (err) {
-      push(err.friendlyMessage || 'Could not connect to ScamShield backend at http://localhost:8000. Please start the backend server.', { type: 'error' })
+      push(err.friendlyMessage || 'Could not connect to the ScamShield analysis service. Please try again.', { type: 'error' })
     } finally {
       setLoading(false)
     }

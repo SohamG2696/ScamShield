@@ -105,7 +105,7 @@ export default function GmailScan() {
         },
       })
     } catch (err) {
-      push(err?.friendlyMessage || 'Could not connect to ScamShield backend at http://localhost:8000. Please start the backend server.', { type: 'error' })
+      push(err?.friendlyMessage || 'Could not connect to the ScamShield analysis service. Please try again.', { type: 'error' })
     } finally {
       setScanning(false)
     }
@@ -269,9 +269,8 @@ export default function GmailScan() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.03 }}
                     onClick={() => { setSelectedEmail(email); setNotJobReason(null) }}
-                    className={`w-full text-left p-4 transition-all flex items-start gap-3 border-b border-white/[0.10] hover:bg-white/[0.12] ${
-                      selectedEmail?.id === email.id ? 'bg-cyan/15 border-l-4 border-l-cyan shadow-[0_0_20px_rgba(0,245,212,0.2)]' : ''
-                    }`}
+                    className={`w-full text-left p-4 transition-all flex items-start gap-3 border-b border-white/[0.10] hover:bg-white/[0.12] ${selectedEmail?.id === email.id ? 'bg-cyan/15 border-l-4 border-l-cyan shadow-[0_0_20px_rgba(0,245,212,0.2)]' : ''
+                      }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet to-cyan flex items-center justify-center text-xs font-bold text-slate-950 shrink-0 mt-0.5 shadow-sm">
                       {extractSenderName(email.from).charAt(0).toUpperCase()}
@@ -290,9 +289,8 @@ export default function GmailScan() {
                     </div>
                     <FiChevronRight
                       size={14}
-                      className={`shrink-0 mt-1 transition-colors ${
-                        selectedEmail?.id === email.id ? 'text-cyan' : 'text-slate-600'
-                      }`}
+                      className={`shrink-0 mt-1 transition-colors ${selectedEmail?.id === email.id ? 'text-cyan' : 'text-slate-600'
+                        }`}
                     />
                   </motion.button>
                 ))}

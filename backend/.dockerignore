@@ -1,0 +1,39 @@
+# Python artifacts
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environments
+.venv
+venv
+ENV
+env
+
+# Secrets & local env
+.env
+.env.*
+!.env.example
+
+# Temporary uploads (keep directory with .gitkeep)
+uploads/*
+!uploads/.gitkeep
+
+# Testing & caches
+tests/__pycache__
+utils/__pycache__
+routes/__pycache__
+.pytest_cache
+.coverage
+htmlcov/
+*.log
+
+# IDE & OS
+.git
+.gitignore
+.vscode
+.idea
+Dockerfile
+.dockerignore
+

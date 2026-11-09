@@ -42,7 +42,7 @@ export default function PdfScan() {
 
       navigate('/result', { state: { result: data, source: 'pdf' } })
     } catch (err) {
-      push(err.friendlyMessage || 'Could not connect to ScamShield backend at http://localhost:8000. Please start the backend server.', { type: 'error' })
+      push(err.friendlyMessage || 'Could not connect to the ScamShield analysis service. Please try again.', { type: 'error' })
     } finally {
       setLoading(false)
     }
