@@ -1,21 +1,27 @@
-from fastapi import FastAPI
+import logging
+from typing import Dict, Any
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from config import ALLOWED_ORIGINS, MAX_TEXT_LENGTH
 from predictor import predict_explain_log_job
 from routes.pdf import router as pdf_router
 from routes.image import router as image_router
 from routes.chat import router as chat_router
-from typing import Dict, Any
+from utils.rate_limiter import inference_limiter
+
+logger = logging.getLogger("scamshield.api")
 
 app = FastAPI(
     title="ScamShield API",
     version="1.0.0"
 )
 
+# Production security: Restrict origins to Azure frontend and authorized local dev URLs
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -35,8 +41,20 @@ def health():
 
 
 @app.post("/predict/text")
-async def predict(payload: Dict[str, Any]):
-    raw_text = payload.get("text") or payload.get("description") or ""
+async def predict(payload: Dict[str, Any], request: Request):
+    # Enforce rate limiting per client IP
+    inference_limiter.check(request)
+
+    raw_text = str(payload.get("text") or payload.get("description") or "").strip()
+
+    if not raw_text and not payload.get("title"):
+        raise HTTPException(status_code=400, detail="Job description text cannot be empty.")
+
+    if len(raw_text) > MAX_TEXT_LENGTH:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Text payload exceeds maximum limit of {MAX_TEXT_LENGTH} characters."
+        )
 
     # Detect or extract input_type
     input_type = payload.get("input_type")

@@ -33,22 +33,30 @@ function AuthProviderFallback({ children }) {
 
   const login = useCallback(() => {
     alert(
-      'Google Sign-In is not configured for this environment.\n\nTo enable Gmail scanning, please configure VITE_GOOGLE_CLIENT_ID.'
+      'Google Sign-In is not configured for this environment.\n\nTo enable authentication, please configure VITE_GOOGLE_CLIENT_ID.'
+    )
+  }, [])
+
+  const requestGmailAccess = useCallback(() => {
+    alert(
+      'Gmail integration is not configured for this environment.\n\nTo enable Gmail scanning, please configure VITE_GOOGLE_CLIENT_ID.'
     )
   }, [])
 
   const value = {
     user,
-    isLoggedIn: !!user,
+    isLoggedIn: Boolean(user && (user.email || user.name)),
+    hasGmailAccess: Boolean(user?.hasGmailAccess && user?.accessToken),
     loading: false,
     login,
+    requestGmailAccess,
     logout,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-// Inner provider that uses the hook (must be inside GoogleOAuthProvider)
+// Inner provider that uses Google hooks (must be inside GoogleOAuthProvider)
 function AuthProviderInner({ children }) {
   const [user, setUser] = useState(() => {
     try {
@@ -78,7 +86,7 @@ function AuthProviderInner({ children }) {
     }
   }, [])
 
-  // Fetch user profile from Google with the access token
+  // Fetch basic user profile from Google with the access token
   const fetchGoogleProfile = useCallback(async (accessToken) => {
     const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -88,21 +96,23 @@ function AuthProviderInner({ children }) {
     return profile
   }, [])
 
-  let loginHandler
+  // 1. Basic Sign-In: Only requests least-privilege identity scopes (openid, email, profile)
+  let basicLoginHandler
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    loginHandler = useGoogleLogin({
-      scope: 'https://www.googleapis.com/auth/gmail.readonly openid email profile',
+    basicLoginHandler = useGoogleLogin({
+      scope: 'openid email profile',
       onSuccess: async (tokenResponse) => {
         setLoading(true)
         try {
           const profile = await fetchGoogleProfile(tokenResponse.access_token)
           const userData = {
+            ...(user || {}),
             name: profile.name,
             given_name: profile.given_name,
             email: profile.email,
             picture: profile.picture,
-            accessToken: tokenResponse.access_token,
+            profileToken: tokenResponse.access_token,
           }
           saveUser(userData)
         } catch (err) {
@@ -117,17 +127,56 @@ function AuthProviderInner({ children }) {
       },
     })
   } catch (err) {
-    console.warn('useGoogleLogin initialization failed, using fallback:', err)
-    loginHandler = () => {
+    console.warn('useGoogleLogin initialization failed for basic login:', err)
+    basicLoginHandler = () => {
       alert('Google authentication service could not be initialized.')
+    }
+  }
+
+  // 2. Incremental Authorization: Requests restricted Gmail read-only scope ONLY on demand
+  let gmailAuthHandler
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    gmailAuthHandler = useGoogleLogin({
+      scope: 'https://www.googleapis.com/auth/gmail.readonly openid email profile',
+      onSuccess: async (tokenResponse) => {
+        setLoading(true)
+        try {
+          let currentProfile = user
+          if (!currentProfile?.email) {
+            currentProfile = await fetchGoogleProfile(tokenResponse.access_token)
+          }
+          const userData = {
+            ...currentProfile,
+            accessToken: tokenResponse.access_token,
+            hasGmailAccess: true,
+          }
+          saveUser(userData)
+        } catch (err) {
+          console.error('Gmail authorization failed:', err)
+        } finally {
+          setLoading(false)
+        }
+      },
+      onError: (err) => {
+        console.error('Gmail authorization error:', err)
+        setLoading(false)
+      },
+    })
+  } catch (err) {
+    console.warn('useGoogleLogin initialization failed for Gmail scope:', err)
+    gmailAuthHandler = () => {
+      alert('Gmail authorization service could not be initialized.')
     }
   }
 
   const value = {
     user,
-    isLoggedIn: !!user,
+    isLoggedIn: Boolean(user && (user.email || user.name)),
+    hasGmailAccess: Boolean(user?.hasGmailAccess && user?.accessToken),
     loading,
-    login: loginHandler,
+    login: basicLoginHandler,
+    requestGmailAccess: gmailAuthHandler,
     logout,
   }
 

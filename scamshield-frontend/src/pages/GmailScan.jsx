@@ -44,7 +44,7 @@ function extractSenderName(from) {
 }
 
 export default function GmailScan() {
-  const { user, isLoggedIn, login, loading: authLoading } = useAuth()
+  const { user, isLoggedIn, hasGmailAccess, requestGmailAccess, loading: authLoading } = useAuth()
   const { push } = useToast()
   const navigate = useNavigate()
 
@@ -55,15 +55,16 @@ export default function GmailScan() {
   const [error, setError] = useState(null)
   const [notJobReason, setNotJobReason] = useState(null)
 
-  // Load inbox on sign-in
+  // Load inbox when user is logged in with Gmail access
   useEffect(() => {
-    if (isLoggedIn && user?.accessToken) {
+    if (isLoggedIn && user?.accessToken && hasGmailAccess) {
       loadInbox()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn])
+  }, [isLoggedIn, user?.accessToken, hasGmailAccess])
 
   async function loadInbox() {
+    if (!user?.accessToken) return
     setLoadingEmails(true)
     setError(null)
     try {
@@ -72,7 +73,7 @@ export default function GmailScan() {
       setEmails(summaries)
     } catch (err) {
       console.error(err)
-      setError('Could not load your inbox. Your session may have expired — try signing in again.')
+      setError('Could not load your inbox. Your session may have expired — try authorizing again.')
     } finally {
       setLoadingEmails(false)
     }
@@ -126,7 +127,6 @@ export default function GmailScan() {
         </div>
 
         <GlassCard hover={false} className="p-10 text-center relative overflow-hidden">
-          {/* Background glow */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#EA4335]/10 via-[#FBBC05]/5 to-[#34A853]/5 pointer-events-none" />
           <div className="relative">
             <motion.div
@@ -139,8 +139,8 @@ export default function GmailScan() {
 
             <h2 className="text-xl font-display font-semibold mb-2">Connect your Gmail</h2>
             <p className="text-slate-400 text-sm max-w-sm mx-auto mb-8 leading-relaxed">
-              We'll read your inbox using read-only access. Nothing is stored — emails are only
-              processed when you explicitly click Scan.
+              We'll read your inbox using read-only access. Nothing is permanently stored — emails are only
+              processed when you explicitly choose to scan them.
             </p>
 
             <div className="grid sm:grid-cols-3 gap-3 mb-8 text-xs text-slate-400">
@@ -160,7 +160,7 @@ export default function GmailScan() {
             </div>
 
             <button
-              onClick={() => login()}
+              onClick={() => requestGmailAccess()}
               disabled={authLoading}
               className="inline-flex items-center gap-3 px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-semibold text-sm hover:bg-slate-100 active:scale-95 transition-all disabled:opacity-50 shadow-lg"
             >
@@ -185,7 +185,55 @@ export default function GmailScan() {
     )
   }
 
-  // ── Signed in ─────────────────────────────────────────────────────────────────
+  // ── Signed in, but needs Gmail scope authorization ───────────────────────────
+  if (!hasGmailAccess) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-display font-semibold flex items-center gap-3">
+            <SiGmail className="text-[#EA4335]" size={28} />
+            Authorize Gmail Scanning
+          </h1>
+          <p className="text-slate-400 mt-1.5">
+            Signed in as <span className="text-slate-200 font-medium">{user.email || user.name}</span>.
+          </p>
+        </div>
+
+        <GlassCard hover={false} className="p-10 text-center relative overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#EA4335]/20 to-[#4285F4]/20 border border-white/10 flex items-center justify-center mx-auto mb-6">
+            <SiGmail className="text-[#EA4335]" size={32} />
+          </div>
+
+          <h2 className="text-xl font-display font-semibold mb-2">Grant Read-Only Gmail Permission</h2>
+          <p className="text-slate-400 text-sm max-w-md mx-auto mb-6 leading-relaxed">
+            In compliance with Google&apos;s least-privilege security policy, ScamShield requests access to read inbox emails only when you choose to use Gmail scanning.
+          </p>
+
+          <div className="bg-[#0b131e] p-4 rounded-xl border border-white/10 max-w-md mx-auto text-left text-xs text-slate-300 mb-8 space-y-2">
+            <div className="flex items-center gap-2 text-emerald-400 font-medium">
+              <span>✓</span> <span>Read-only message viewing</span>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-400 font-medium">
+              <span>✓</span> <span>Access token stored only in this browser session</span>
+            </div>
+            <div className="flex items-center gap-2 text-emerald-400 font-medium">
+              <span>✓</span> <span>Adheres to Google Limited Use Policy</span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => requestGmailAccess()}
+            disabled={authLoading}
+            className="inline-flex items-center gap-3 px-7 py-3.5 rounded-2xl bg-[#EA4335] text-white font-semibold text-sm hover:bg-[#d93829] active:scale-95 transition-all disabled:opacity-50 shadow-lg shadow-[#EA4335]/20"
+          >
+            {authLoading ? 'Connecting…' : 'Authorize Gmail Scanning'}
+          </button>
+        </GlassCard>
+      </div>
+    )
+  }
+
+  // ── Signed in with Gmail access ──────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">

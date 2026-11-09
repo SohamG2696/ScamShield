@@ -116,7 +116,7 @@ export default function FloatingAssistant() {
         ...prev,
         {
           role: 'assistant',
-          content: "⚠️ Couldn't reach the assistant right now. Make sure the backend is running on port 8000.",
+          content: "⚠️ Couldn't reach the assistant right now. Please try again in a moment.",
         },
       ])
     } finally {
@@ -137,7 +137,7 @@ export default function FloatingAssistant() {
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
       <AnimatePresence>
         {open && (
           <motion.div
@@ -145,7 +145,7 @@ export default function FloatingAssistant() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.93 }}
             transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-            className="mb-3 w-80 flex flex-col glass-strong rounded-2xl shadow-glass-xl overflow-hidden"
+            className="mb-3 w-[calc(100vw-3rem)] sm:w-84 max-w-sm flex flex-col glass-strong rounded-2xl shadow-glass-xl overflow-hidden border border-white/20"
             style={{ height: 460 }}
           >
             {/* ── Header ── */}

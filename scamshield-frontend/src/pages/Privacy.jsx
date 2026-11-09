@@ -114,28 +114,29 @@ export default function Privacy() {
             </div>
 
             <div className="border-l-2 border-emerald-500/40 pl-4 py-1">
-              <h3 className="font-semibold text-white text-base">B. PDF Document Analysis (/app/pdf)</h3>
+              <h3 className="font-semibold text-white text-base">B. PDF Document Analysis (/predict/pdf)</h3>
               <p className="mt-1 text-slate-400">
-                When you upload a PDF file (such as a job description or offer letter), the file is temporarily written to the server&apos;s isolated upload folder solely to allow text extraction using the PyMuPDF library. <strong className="text-white">The uploaded PDF file is immediately deleted from the server within the code execution finally block</strong> as soon as text extraction finishes or if an error occurs. ScamShield never archives, indexes, or retains your uploaded PDF files.
+                When you upload a PDF file (such as a job description or offer letter), ScamShield validates the file size (maximum 10 MB) and verifies the standard PDF binary header (<code className="text-[#e8c48d]">%PDF-</code>). The document is saved under an isolated, cryptographically generated UUID filename to prevent path traversal and file collisions. Text is extracted in memory using PyMuPDF. <strong className="text-white">The temporary PDF file is permanently deleted from server storage in an automated code finally block</strong> as soon as text extraction finishes or if an error occurs.
               </p>
             </div>
 
             <div className="border-l-2 border-violet-500/40 pl-4 py-1">
-              <h3 className="font-semibold text-white text-base">C. Screenshot &amp; Image OCR (/app/image)</h3>
+              <h3 className="font-semibold text-white text-base">C. Screenshot &amp; Image OCR (/predict/image)</h3>
               <p className="mt-1 text-slate-400">
-                When you submit an image or screenshot (supporting PNG, JPG, JPEG, WEBP, BMP, and TIFF formats), text is extracted locally on the server using an embedded EasyOCR optical character recognition engine with bilingual English and Hindi support. <strong className="text-white">The image file is permanently deleted from server disk immediately in the finally block</strong> after OCR completion. We do not retain, store, or create copies of your images.
+                When you submit an image or screenshot (supporting PNG, JPG, JPEG, WEBP, BMP, and TIFF formats up to 10 MB), ScamShield validates the image header magic bytes and assigns a collision-proof UUID filename. Text is extracted locally on the server using an embedded EasyOCR optical character recognition engine with bilingual English and Hindi support. <strong className="text-white">The image file is permanently deleted from server storage immediately in the finally block</strong> after OCR completion.
               </p>
             </div>
 
             <div className="border-l-2 border-amber-500/40 pl-4 py-1">
               <h3 className="font-semibold text-white text-base">D. Gmail Inbox Integration (/app/gmail)</h3>
               <p className="mt-1 text-slate-400">
-                ScamShield provides an optional Gmail integration to scan suspicious job-related emails. Our system is designed with strict client-side controls:
+                ScamShield provides an optional Gmail integration to scan suspicious job-related emails. Our system is designed with strict client-side controls and incremental authorization:
               </p>
               <ul className="list-disc list-inside mt-2 space-y-1 text-slate-400 pl-2">
+                <li><strong className="text-slate-200">Incremental Least-Privilege Authorization:</strong> General site authentication requests only basic identity (<code className="text-[#e8c48d]">openid email profile</code>). The restricted <code className="text-[#e8c48d]">gmail.readonly</code> permission is requested only if you explicitly choose to activate Gmail scanning.</li>
                 <li><strong className="text-slate-200">On-Demand Selection Only:</strong> ScamShield does NOT bulk-download, clone, or continuously monitor your inbox. The client fetches a short list of message headers (Subject, From, Date) so you can review and select a specific email.</li>
                 <li><strong className="text-slate-200">Isolated Message Transfer:</strong> Only the single email message you explicitly choose and confirm to scan has its text decoded and submitted for analysis.</li>
-                <li><strong className="text-slate-200">Direct Browser Communication:</strong> Your browser communicates directly with Google&apos;s official Gmail API (<code className="text-[#e8c48d]">gmail.googleapis.com</code>). Your Google OAuth access token is never transmitted to or stored on the ScamShield backend.</li>
+                <li><strong className="text-slate-200">Direct Browser Communication:</strong> Your browser communicates directly with Google&apos;s official Gmail API (<code className="text-[#e8c48d]">gmail.googleapis.com</code>). Your Google OAuth access token is stored strictly in your browser&apos;s transient <code className="text-[#e8c48d]">sessionStorage</code> and is never transmitted to or stored on the ScamShield backend.</li>
               </ul>
             </div>
 
@@ -368,7 +369,9 @@ export default function Privacy() {
           </p>
           <ul className="space-y-2 text-slate-400 list-disc list-inside pl-2">
             <li><strong className="text-slate-200">HTTPS Encryption in Transit:</strong> All communications between your browser, our Azure Container Apps API, the Google Gmail API, and Groq LLM API are enforced over TLS 1.3 / HTTPS encryption.</li>
-            <li><strong className="text-slate-200">Ephemeral Execution Sandbox:</strong> File uploads reside only in a temporary directory on a stateless container and are deleted via automated finally handlers.</li>
+            <li><strong className="text-slate-200">Restricted Cross-Origin Resource Sharing (CORS):</strong> API access is strictly limited to authorized production web domains (<code className="text-[#e8c48d]">https://happy-cliff-00cb7b800.4.azurestaticapps.net</code>) and local development ports. Wildcard origin sharing is rejected.</li>
+            <li><strong className="text-slate-200">Application Rate Limiting (HTTP 429):</strong> To prevent abuse, brute-force requests, and automated scraping, API endpoints enforce sliding-window rate limits per client IP address.</li>
+            <li><strong className="text-slate-200">Ephemeral Execution Sandbox:</strong> File uploads reside only under random UUID temporary paths on a stateless container and are deleted via automated finally handlers.</li>
             <li><strong className="text-slate-200">Frontend Error Boundaries:</strong> Built-in React Error Boundaries prevent sensitive stack trace leaks in production builds.</li>
           </ul>
         </section>

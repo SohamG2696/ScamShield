@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Shield, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../contexts/GoogleAuthContext'
 import ScanNavigation from './ScanNavigation'
+import FloatingAssistant from '../ui/FloatingAssistant'
 
 export function SecurityShell({ children }) {
   const { pathname } = useLocation()
@@ -39,6 +40,8 @@ export function SecurityShell({ children }) {
         {isScanner && <ScanNavigation />}
         <div key={pathname} className="workspace-page">{children || <Outlet />}</div>
       </main>
+
+      <FloatingAssistant />
 
       <footer className="site-footer">
         <span>ScamShield <span aria-hidden="true">/</span> A second look at your next opportunity.</span>

@@ -70,7 +70,8 @@ def call_groq_chat(
             kwargs: Dict[str, Any] = {
                 "messages": messages,
                 "model": model_name,
-                "temperature": temperature
+                "temperature": temperature,
+                "timeout": 30.0
             }
             if response_format:
                 kwargs["response_format"] = response_format

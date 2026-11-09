@@ -33,6 +33,40 @@ MEDIUM_RISK = 0.60
 HIGH_RISK = 0.85
 
 # ===========================
+# Security & Upload Guardrails
+# ===========================
+
+MAX_UPLOAD_SIZE_BYTES = int(os.getenv("MAX_UPLOAD_SIZE_BYTES", str(10 * 1024 * 1024)))  # 10 MB limit
+MAX_TEXT_LENGTH = int(os.getenv("MAX_TEXT_LENGTH", "65536"))  # 64 KB limit
+
+# Default production and local origins
+DEFAULT_ALLOWED_ORIGINS = [
+    "https://happy-cliff-00cb7b800.4.azurestaticapps.net",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:4173",
+]
+
+raw_origins = os.getenv("ALLOWED_ORIGINS", "").strip()
+if raw_origins:
+    if raw_origins.startswith("[") and raw_origins.endswith("]"):
+        import json
+        try:
+            ALLOWED_ORIGINS = json.loads(raw_origins)
+        except Exception:
+            ALLOWED_ORIGINS = [o.strip().strip("'\"") for o in raw_origins.strip("[]").split(",") if o.strip()]
+    else:
+        ALLOWED_ORIGINS = [o.strip().strip("'\"") for o in raw_origins.split(",") if o.strip()]
+else:
+    ALLOWED_ORIGINS = DEFAULT_ALLOWED_ORIGINS
+
+# Ensure empty strings or whitespace are stripped
+ALLOWED_ORIGINS = [origin.rstrip("/") for origin in ALLOWED_ORIGINS if origin]
+
+# ===========================
 # External Integrations
 # ===========================
 

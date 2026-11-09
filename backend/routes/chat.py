@@ -1,7 +1,8 @@
 import logging
-from fastapi import APIRouter
-from pydantic import BaseModel
+from fastapi import APIRouter, Request, HTTPException
+from pydantic import BaseModel, Field
 from utils.groq_client import client, call_groq_chat
+from utils.rate_limiter import chat_limiter
 
 logger = logging.getLogger("scamshield.chat")
 
@@ -29,26 +30,31 @@ If the user shares a job posting or email snippet, analyze it for red flags.
 
 
 class ChatMessage(BaseModel):
-    role: str   # "user" or "assistant"
-    content: str
+    role: str = Field(..., max_length=20)   # "user" or "assistant"
+    content: str = Field(..., max_length=4000)
 
 
 class ChatRequest(BaseModel):
-    messages: list[ChatMessage]
+    messages: list[ChatMessage] = Field(..., max_items=20)
 
 
 @router.post("")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, request: Request):
+    # Enforce rate limiting per client IP
+    chat_limiter.check(request)
+
     if not client:
         return {
-            "reply": "⚠️ The AI assistant is currently unavailable (API key not configured). Please check the backend `.env` file."
+            "reply": "⚠️ The AI assistant is currently unavailable (API key not configured). Please check the backend configuration."
         }
 
     # Build the message history for Groq
     groq_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     # Keep last 10 messages for context window efficiency
     for msg in req.messages[-10:]:
-        groq_messages.append({"role": msg.role, "content": msg.content})
+        clean_content = msg.content.strip()
+        if clean_content:
+            groq_messages.append({"role": msg.role, "content": clean_content})
 
     try:
         reply = call_groq_chat(
@@ -58,7 +64,7 @@ async def chat(req: ChatRequest):
         )
         return {"reply": reply.strip()}
     except Exception as e:
-        logger.error(f"Chat completion failed: {e}")
+        logger.error(f"Chat completion failed: {e}", exc_info=True)
         return {
             "reply": "Sorry, I ran into an issue processing your message. Please try again in a moment."
         }
