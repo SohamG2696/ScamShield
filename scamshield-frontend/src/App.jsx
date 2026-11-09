@@ -10,6 +10,7 @@ import Result from './pages/Result'
 import History from './pages/History'
 import Profile from './pages/Profile'
 import About from './pages/About'
+import Privacy from './pages/Privacy'
 import NotFound from './pages/NotFound'
 import { MotionConfig } from 'framer-motion'
 
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/about" element={<About />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

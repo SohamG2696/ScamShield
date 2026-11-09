@@ -42,7 +42,11 @@ export function SecurityShell({ children }) {
 
       <footer className="site-footer">
         <span>ScamShield <span aria-hidden="true">/</span> A second look at your next opportunity.</span>
-        <Link to="/about">Understand your assessment</Link>
+        <div className="flex items-center gap-3">
+          <Link to="/about">Understand your assessment</Link>
+          <span className="text-slate-600" aria-hidden="true">·</span>
+          <Link to="/privacy">Privacy Policy</Link>
+        </div>
       </footer>
     </div>
   )

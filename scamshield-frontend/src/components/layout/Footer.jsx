@@ -32,7 +32,7 @@ export default function Footer() {
           <p className="text-sm font-medium text-slate-300 mb-3">Company</p>
           <ul className="space-y-2 text-sm text-slate-500">
             <li><Link to="/about" className="hover:text-cyan transition-colors">About</Link></li>
-            <li><a href="#" className="hover:text-cyan transition-colors">Privacy</a></li>
+            <li><Link to="/privacy" className="hover:text-cyan transition-colors">Privacy Policy</Link></li>
             <li><a href="#" className="hover:text-cyan transition-colors">Terms</a></li>
           </ul>
         </div>
